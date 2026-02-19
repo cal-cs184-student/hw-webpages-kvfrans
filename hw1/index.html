@@ -18,10 +18,29 @@
 
 			img {
 				display: inline-block;
+				max-width: 100%;
 			}
 
 			body {
 				font-family: 'Inter', sans-serif;
+			}
+
+			.image-grid {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 16px;
+				justify-content: center;
+				margin: 16px 0 32px;
+			}
+
+			.image-grid figure {
+				margin: 0;
+				width: min(100%, 420px);
+			}
+
+			.image-grid img {
+				width: 100%;
+				height: auto;
 			}
 		</style>
 	</head>
@@ -32,16 +51,11 @@
 
 		<br>
 
-		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		Link to webpage:  <a href="https://cal-cs184-student.github.io/hw-webpages-kvfrans/hw1/index.html">https://cal-cs184-student.github.io/hw-webpages-kvfrans/hw1/index.html</a>
 		
 		<br>
 
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
-
-		<figure>
-			<img src="lion.jpg" alt="Lion" style="width:50%"/>
-			<figcaption>You can add images with captions!</figcaption>
-		</figure>
+		Link to GitHub repository:  <a href="https://github.com/cal-cs184-student/hw-webpages-kvfrans">https://github.com/cal-cs184-student/hw-webpages-kvfrans</a>
 
 		<!--
 		We've already added one heading per task, to make your write-up as navigable when grading. Please fit your write-up within these sections!
@@ -52,47 +66,95 @@
 
 		<h2>Task 1: Drawing Single-Color Triangles</h2>
 		Rasterizing the triangle works by doing a double for loop over the bounding box of the triangle. Then, for each pixel, we check if the pixel is inside the triangle by using the three line test and ensuring that the point is on the same side of all three edges. If so, we fill the pixel with the color of the triangle.
-
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
-		<div style="display: flex; flex-direction: column; align-items: center;">
-			<table style="width: 100%; text-align: center; border-collapse: collapse;">
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			</table>
+		<div class="image-grid">
+			<figure>
+				<img src="part1.png"/>
+				<figcaption>Basic Triangles</figcaption>
+			</figure>
 		</div>
 		
 		<h2>Task 2: Antialiasing by Supersampling</h2>
 		To implement supersampling, I first created the sample_buffer to be N times as large as the framebuffer along each dimension. This sample_buffer will hold the supersampled values. During the rasterization code, each line and point just writes to all NxN subpixels within the original pixel. For triangles, we use the same logic as before. Then, we average the sample_buffer across the NxN local neighborhood to get the final color.
+		<div class="image-grid">
+			<figure>
+				<img src="part2-sample1.png"/>
+				<figcaption>Sample rate 1</figcaption>
+			</figure>
+			<figure>
+				<img src="part2-sample4.png"/>
+				<figcaption>Sample rate 4</figcaption>
+			</figure>
+			<figure>
+				<img src="part2-sample16.png"/>
+				<figcaption>Sample rate 16</figcaption>
+			</figure>
+		</div>
 
 		<h2>Task 3: Transforms</h2>
 		To get the transformation working, we just had to fill out the corresponding homoegenous-coordinate matrixes. For scale, it is the identity matrix with a scale factor on the diagonal. For translation, the rotation component is the identity matrix and the translation component uses the homogenous coordinate. For rotation, we can put the typical 2D cos/sin rotation matrix in the rotation component, and keep the homogenous coordinate unused.
+		<div class="image-grid">
+			<figure>
+				<img src="part3-robot.png"/>
+				<figcaption>I tried to make the robot make a cheering pose by rotating the arms.</figcaption>
+			</figure>
+		</div>
 
 		<h2>Task 4: Barycentric coordinates</h2>
 		Barycentric coordinates are a way to set the value at a point in a triangle as a weighted average of the values at the vertices. The weighted average always sums to 1. For example, if we have a triangle with the RGB colors at each of the vertices, then we can use barycentric coordinates to create a triangle with a color that smoothly interpolates between each vertex main color.
+		<div class="image-grid">
+			<figure>
+				<img src="part4.png"/>
+				<figcaption>Barycentric interpolation</figcaption>
+			</figure>
+			<figure>
+				<img src="part4-circle.png"/>
+				<figcaption>Color wheel test</figcaption>
+			</figure>
+		</div>
 
 		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
-		To render textures, we first take each triangle and loop over the samples as usual. At each point, we compute the barycentric coordinates and use them to interpolate the per-vertex texture coordinates (which are in 2D). This gives each point a coorespoinding UV texture coordinate. To get the actual pixel, we can use either nearest neighbor (which rounds to the nearest int), or a bilinear interpolation which uses an interpolation between the four nearest texture values.
+		To render textures, we first take each triangle and loop over every pixel in the triangle as usual (using the bounding box). At each point, we compute the barycentric coordinates and use them to interpolate the per-vertex texture coordinates (which are in 2D). This gives each point a coorespoinding UV texture coordinate. To calculate the actual pixel color, we can use either nearest neighbor (which rounds to the nearest texture coordinate), or a bilinear interpolation which uses an interpolation between the four nearest texture coordinates. This can be combined with supersampling.
+		<div class="image-grid">
+			<figure>
+				<img src="part5-nearest1.png"/>
+				<figcaption>Nearest sampling (sample rate 1)</figcaption>
+			</figure>
+			<figure>
+				<img src="part5-nearest16.png"/>
+				<figcaption>Nearest sampling (sample rate 16)</figcaption>
+			</figure>
+			<figure>
+				<img src="part5-bilinear1.png"/>
+				<figcaption>Bilinear sampling (sample rate 1)</figcaption>
+			</figure>
+			<figure>
+				<img src="part5-bilinear16.png"/>
+				<figcaption>Bilinear sampling (sample rate 16)</figcaption>
+			</figure>
+		</div>
+
+		There will be differences between nearest neighbor and bilinear especially at edges, or when the texture is zoomed in. Nearest neighbor will always look "blockier" but is more faithful to the original texture, while bilinear smooths things out.
 
 		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
 		Level sampling is a way to automatically sample low or high resolutions of a texture, based on how stretched that texture will be by rendered. As an example, if a camera is looking very closely at a texture, we should use the high resolution version so it shows up clearly. But for an object that is far away, we can get away with using a lower resolution texture. To determine this resolution, we can use a trick where we compute the gradient (wrt pixel coordinates) of the texture coordinates -- if the gradient is large, we should use a lower resolution texture, and if the gradient is small, we should use a higher resolution texture.
+		<div class="image-grid">
+			<figure>
+				<img src="part6-0-nearest.png"/>
+				<figcaption>L0 + nearest pixel sampling</figcaption>
+			</figure>
+			<figure>
+				<img src="part6-0-bilinear.png"/>
+				<figcaption>L0 + bilinear pixel sampling</figcaption>
+			</figure>
+			<figure>
+				<img src="part6-nearest-nearest.png"/>
+				<figcaption>Nearest level + nearest pixel</figcaption>
+			</figure>
+			<figure>
+				<img src="part6-nearest-bilinear.png"/>
+				<figcaption>Nearest level + bilinear pixel</figcaption>
+			</figure>
+		</div>
 
 		In terms of texture pixel sampling, if we use nearest neighbor we get the fastest rendering speed but there could be pixelaed artifacts. If we use bilinear interpolation, we get a smoother result but it is slower. Either way both techniques can use the same memory since we can average the pixel samples live.
 
